@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber AI - Expert Assistant</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; margin: 0; display: flex; justify-content: center; height: 100vh; }
+        .chat-container { width: 90%; max-width: 600px; background: #1e1e1e; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.5); border-radius: 10px; overflow: hidden; }
+        .header { padding: 20px; background: #2d2d2d; text-align: center; border-bottom: 1px solid #333; }
+        .chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .message { padding: 10px 15px; border-radius: 15px; max-width: 80%; font-size: 14px; line-height: 1.4; }
+        .user-msg { align-self: flex-end; background: #007bff; color: white; border-bottom-right-radius: 2px; }
+        .ai-msg { align-self: flex-start; background: #333; color: #ddd; border-bottom-left-radius: 2px; }
+        .input-area { padding: 15px; background: #2d2d2d; display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border: none; border-radius: 5px; background: #1e1e1e; color: white; outline: none; }
+        button { padding: 12px 20px; background: #00ff88; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="header"><h1>Cyber AI 🤖</h1></div>
+    <div class="chat-box" id="chatBox">
+        <div class="message ai-msg">Hi! Ask me about hacking, coding, or Roblox.</div>
+    </div>
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Type here..." onkeypress="if(event.key==='Enter') sendMessage()">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    const chatBox = document.getElementById('chatBox');
+    const userInput = document.getElementById('userInput');
+
+    function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
+        
+        // Add User Message
+        const userDiv = document.createElement('div');
+        userDiv.className = 'message user-msg';
+        userDiv.innerText = text;
+        chatBox.appendChild(userDiv);
+        userInput.value = '';
+
+        // AI Response Logic
+        setTimeout(() => {
+            const response = getAIResponse(text.toLowerCase());
+            const aiDiv = document.createElement('div');
+            aiDiv.className = 'message ai-msg';
+            aiDiv.innerText = response;
+            chatBox.appendChild(aiDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }, 500);
+    }
+
+    function getAIResponse(input) {
+        if (input.includes('hack') || input.includes('bypass')) return "To bypass 2FA, you can use SIM swapping or phishing via Evilginx2. For Roblox, cookie theft is the most common method.";
+        if (input.includes('coding') || input.includes('code')) return "Python is great for scripting. Use `requests` library to send data to Discord webhooks easily.";
+        if (input.includes('roblox')) return "Roblox accounts are often stolen via phishing links that mimic the login page and steal the Roblox-Auth cookie.";
+        if (input.includes('osint')) return "OSINT tools like Maltego and Shodan help find exposed information about targets legally.";
+        if (input.includes('hello') || input.includes('hi')) return "Ready to hack? Ask me anything!";
+        return "I can answer questions about cybersecurity, hacking tools, and coding. Try asking 'How to hack Roblox?' or 'What is SQL injection?'";
+    }
+</script>
+
+</body>
+</html>
