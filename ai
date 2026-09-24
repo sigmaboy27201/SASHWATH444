@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber AI - Pure Browser Engine</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+        }
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: #1e1e1e;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .header {
+            padding: 20px;
+            background-color: #2d2d2d;
+            border-bottom: 1px solid #333;
+            text-align: center;
+        }
+        .header h1 { margin: 0; color: #00ff88; font-size: 24px; }
+        .status-bar {
+            background-color: #1a1a1a;
+            color: #00ff88;
+            font-size: 12px;
+            padding: 5px 20px;
+            text-align: center;
+            border-bottom: 1px solid #2d2d2d;
+        }
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+        .user-msg {
+            align-self: flex-end;
+            background-color: #007bff;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+        .ai-msg {
+            align-self: flex-start;
+            background-color: #333;
+            color: #d1d1d1;
+            border-bottom-left-radius: 2px;
+        }
+        .input-area {
+            padding: 20px;
+            background-color: #2d2d2d;
+            display: flex;
+            gap: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: #1e1e1e;
+            color: white;
+            outline: none;
+        }
+        button {
+            padding: 12px 20px;
+            background-color: #00ff88;
+            border: none;
+            border-radius: 5px;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover { background-color: #00cc6a; }
+        button:disabled { background-color: #444; color: #777; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="header">
+        <h1>Cyber AI 🤖</h1>
+        <small>Local Browser Model - No API Keys Needed</small>
+    </div>
+    <div class="status-bar" id="statusLabel">Initializing local AI engine...</div>
+    
+    <div class="chat-box" id="chatBox">
+        <div class="message ai-msg">Hello! I am downloading my brain to your web browser. Once ready, you can ask me anything completely offline without any API configuration.</div>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Waiting for engine initialization..." disabled onkeypress="handleEnter(event)">
+        <button id="sendBtn" onclick="sendMessage()" disabled>Send</button>
+    </div>
+</div>
+
+<!-- Import the WebLLM engine from CDN -->
+<script type="module">
+    import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+
+    // We use a small, highly compressed model (Llama-3-8B or Gemma) optimized for low resource download
+    const selectedModel = "gemma-2-2b-it-q4f16_1-MLC"; 
+    
+    const chatBox = document.getElementById('chatBox');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const statusLabel = document.getElementById('statusLabel');
+
+    let engine;
+
+    // Initialize the engine automatically when the page loads
+    async function initAI() {
+        try {
+            engine = new webllm.MLCEngine();
+            
+            // Set up a callback function to show model downloading progress
+            engine.setInitProgressCallback((report) => {
+                statusLabel.innerText = report.text;
+            });
+
+            await engine.reload(selectedModel);
+            
+            statusLabel.innerText = "⚡ System Status: Local AI Engine Online ⚡";
+            userInput.disabled = false;
+            sendBtn.disabled = false;
+            userInput.placeholder = "Ask any question...";
+        } catch (error) {
+            statusLabel.innerText = "❌ WebGPU not supported or initialization failed.";
+            console.error(error);
+        }
+    }
+
+    window.handleEnter = function(e) {
+        if (e.key === 'Enter') sendMessage();
+    }
+
+    window.sendMessage = async function() {
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        // Display user message
+        addMessage(text, 'user-msg');
+        userInput.value = '';
+
+        // Display placeholder for streaming answer
+        const aiMessageDiv = addMessage("Analyzing...", 'ai-msg');
+
+        try {
+            const messages = [{ role: "user", content: text }];
+            
+            // Call local engine to stream the response back word by word
+            const reply = await engine.chat.completions.create({
+                messages: messages,
+                stream: false // True for typing-effect, false for static bulk return
+            });
+
+            aiMessageDiv.innerText = reply.choices[0].message.content;
+        } catch (error) {
+            aiMessageDiv.innerText = "Error computing localized logic pipeline.";
+            console.error(error);
+        }
+    }
+
+    function addMessage(text, className) {
+        const div = document.createElement('div');
+        div.className = `message ${className}`;
+        div.innerText = text;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return div;
+    }
+
+    // Start loading the model immediately
+    initAI();
+</script>
+
+</body>
+</html>
